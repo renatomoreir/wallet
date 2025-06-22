@@ -1,9 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from './user.entity';
+import { User, UserRole } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
-import { Wallet } from '../wallets/wallet.entity';
+import { Wallet } from '../wallets/entities/wallet.entity';
 
 @Injectable()
 export class UsersService {
@@ -12,9 +12,13 @@ export class UsersService {
     @InjectRepository(Wallet) private walletRepository: Repository<Wallet>,
   ) { }
 
-  async create(name: string, email: string, password: string) {
+  async create(name: string, email: string, password: string, role: UserRole = UserRole.user) {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = this.userRepository.create({ name, email, password: hashedPassword });
+    const existingUser = await this.userRepository.findOne({ where: { email } });
+    if (existingUser) {
+      throw new BadRequestException('Email já está em uso');
+    }
+    const user = this.userRepository.create({ name, email, password: hashedPassword, role, created_at: new Date() });
     await this.userRepository.save(user);
 
     const wallet = this.walletRepository.create({ user, balance: 0 });
@@ -46,4 +50,15 @@ export class UsersService {
 
     return query.getMany();
   }
+
+   async updateRole(id: string, role: UserRole) {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    user.role = role;
+    return await this.userRepository.save(user);
+  }
+
 }

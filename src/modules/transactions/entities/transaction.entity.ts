@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne } from 'typeorm';
-import { Wallet } from '../wallets/wallet.entity';
+import { Wallet } from '../../wallets/entities/wallet.entity';
 
 export enum TransactionStatus {
   PENDING = 'PENDING',

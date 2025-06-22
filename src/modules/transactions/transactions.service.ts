@@ -1,8 +1,8 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { Transaction, TransactionStatus } from './transaction.entity';
-import { Wallet } from '../wallets/wallet.entity';
+import { Transaction, TransactionStatus } from './entities/transaction.entity';
+import { Wallet } from '../wallets/entities/wallet.entity';
 
 @Injectable()
 export class TransactionsService {

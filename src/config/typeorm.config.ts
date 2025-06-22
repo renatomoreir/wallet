@@ -1,7 +1,7 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { User } from '../modules/users/user.entity';
-import { Wallet } from '../modules/wallets/wallet.entity';
-import { Transaction } from '../modules/transactions/transaction.entity';
+import { User } from '../modules/users/entities/user.entity';
+import { Wallet } from '../modules/wallets/entities/wallet.entity';
+import { Transaction } from '../modules/transactions/entities/transaction.entity';
 import { ConfigService } from '@nestjs/config';
 
 export const getTypeOrmConfig = (configService: ConfigService): TypeOrmModuleOptions => ({

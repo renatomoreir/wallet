@@ -1,6 +1,10 @@
 import { Controller, Post, Body, Param, Get, Query } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
+import { Roles } from '../../shared/roles.decorator';
+import { UserRole } from '../users/entities/user.entity';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/dto/jwt-auth.guard';
 
 @Controller('transactions')
 export class TransactionsController {
@@ -11,6 +15,8 @@ export class TransactionsController {
     return this.transactionsService.createTransaction(body.senderWalletId, body.receiverWalletId, body.amount);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.admin)
   @Post(':id/reverse')
   reverse(@Param('id') id: string) {
     return this.transactionsService.reverseTransaction(id);
