@@ -4,7 +4,7 @@ import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { Roles } from '../../shared/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
 import { UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/dto/jwt-auth.guard';
+import { JwtAuthGuard } from '../../shared/jwt-auth.guard';
 
 @Controller('transactions')
 export class TransactionsController {

@@ -1,9 +1,13 @@
-import { Controller, Post, Body, Get, Param, Query, Patch } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Query, Patch, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { FilterUserDto } from './dto/filter-user.dto';
+import { UpdateRoleDto } from './dto/update-role.dto';
 import { UserRole } from './entities/user.entity';
 import { Roles } from '../../shared/roles.decorator';
+import { JwtAuthGuard } from '../../shared/jwt-auth.guard';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { RolesGuard } from 'src/shared/roles.guard';
 
 @Controller('users')
 export class UsersController {
@@ -24,10 +28,15 @@ export class UsersController {
     return this.usersService.findById(id);
   }
 
-  @Patch(':id/role')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin)
-  promoteUser(@Param('id') id: string) {
-    const role = UserRole.admin;
-    return this.usersService.updateRole(id, role);
+  @Patch(':userId/role')
+  @ApiBearerAuth('Authorization')
+  promoteUser(
+    @Param('userId') userId: string,
+    @Body() updateRoleDto: { role: UserRole },
+  ) {
+    return this.usersService.updateRole(userId, updateRoleDto.role);
   }
+
 }

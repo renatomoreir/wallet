@@ -2,6 +2,7 @@ import { CanActivate, ExecutionContext, Injectable, ForbiddenException } from '@
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from './roles.decorator';
 import { UserRole } from '../modules/users/entities/user.entity';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -16,18 +17,37 @@ export class RolesGuard implements CanActivate {
     if (!requiredRoles) {
       return true;
     }
-    
-    const { user } = context.switchToHttp().getRequest();
-    if (!user) {
-      throw new ForbiddenException('Usuário não autenticado');
-    }
-    if (!user.role) {
-      throw new ForbiddenException('Usuário sem função definida');
-    }
-    if (!requiredRoles.includes(user.role)) {
-      throw new ForbiddenException('Acesso negado. Permissão insuficiente. Role atual: ${user.role}');
+
+    const request = context.switchToHttp().getRequest();
+
+    const authHeader = request.headers.authorization;
+    if (!authHeader) {
+      throw new ForbiddenException('Token não informado');
     }
 
-    return true;
+    const token = authHeader.split(' ')[1];
+
+    try {
+      const decoded: any = jwt.verify(token, process.env.JWT_SECRET);
+      request.user = {
+        userId: decoded.sub,
+        email: decoded.email,
+        role: decoded.role,
+      };
+
+      console.log('User no guard =>', request.user);
+
+      if (!request.user.role) {
+        throw new ForbiddenException('Usuário sem função definida');
+      }
+
+      if (!requiredRoles.includes(request.user.role)) {
+        throw new ForbiddenException('Acesso negado. Permissão insuficiente');
+      }
+
+      return true;
+    } catch (error) {
+      throw new ForbiddenException('Token inválido');
+    }
   }
 }
