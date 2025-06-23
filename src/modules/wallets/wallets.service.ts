@@ -15,7 +15,7 @@ export class WalletsService {
   ) { }
 
   async getBalance(walletId: string) {
-    const wallet = await this.walletRepository.findOne({ where: { id: walletId } });
+    const wallet = await this.walletRepository.findOne({ where: { walletId: walletId } });
     return { balance: wallet?.balance || 0 };
   }
 
@@ -38,14 +38,14 @@ export class WalletsService {
     return await query.getMany();
   }
 
-  async findById(id: string) {
-    const wallet = await this.walletRepository.findOne({ where: { id }, relations: ['user'] });
+  async findById(walletId: string) {
+    const wallet = await this.walletRepository.findOne({ where: { walletId }, relations: ['user'] });
     if (!wallet) throw new NotFoundException('Carteira não encontrada');
     return wallet;
   }
 
   async create(dto: CreateWalletDto) {
-    const user = await this.userRepository.findOne({ where: { id: dto.userId } });
+    const user = await this.userRepository.findOne({ where: { userId: dto.userId } });
     if (!user) throw new NotFoundException('Usuário não encontrado');
 
     const wallet = this.walletRepository.create({
@@ -56,8 +56,8 @@ export class WalletsService {
     return await this.walletRepository.save(wallet);
   }
 
-  async update(id: string, dto: UpdateWalletDto) {
-    const wallet = await this.findById(id);
+  async update(walletId: string, dto: UpdateWalletDto) {
+    const wallet = await this.findById(walletId);
 
     if (dto.balance !== undefined) {
       wallet.balance = dto.balance;
@@ -66,8 +66,8 @@ export class WalletsService {
     return await this.walletRepository.save(wallet);
   }
 
-  async delete(id: string) {
-    const wallet = await this.findById(id);
+  async delete(walletId: string) {
+    const wallet = await this.findById(walletId);
     return await this.walletRepository.remove(wallet);
   }
 

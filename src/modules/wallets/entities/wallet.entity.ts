@@ -4,15 +4,15 @@ import { User } from '../../users/entities/user.entity';
 @Entity()
 export class Wallet {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  walletId: string;
 
   @OneToOne(() => User, user => user.wallet, { cascade: true })
-  @JoinColumn()
+  @JoinColumn({ name: 'userId' })
   user: User;
 
   @Column({ type: 'decimal', precision: 18, scale: 2, default: 0 })
   balance: number;
 
   @CreateDateColumn()
-  created_at: Date;
+  createdAt: Date;
 }

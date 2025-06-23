@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Wallet } from '../../wallets/entities/wallet.entity';
 
 export enum TransactionStatus {
@@ -9,11 +9,15 @@ export enum TransactionStatus {
 
 @Entity()
 export class Transaction {
-  @PrimaryGeneratedColumn('uuid') id: string;
+  @PrimaryGeneratedColumn('uuid') transactionId: string;
 
-  @ManyToOne(() => Wallet) sender_wallet: Wallet;
+  @ManyToOne(() => Wallet)
+  @JoinColumn({ name: 'senderWalletId' })
+  senderWalletId: Wallet;
 
-  @ManyToOne(() => Wallet) receiver_wallet: Wallet;
+  @ManyToOne(() => Wallet)
+  @JoinColumn({ name: 'receiverWalletId' })
+  receiverWalletId: Wallet;
 
   @Column({ type: 'decimal' }) amount: number;
 
@@ -21,5 +25,5 @@ export class Transaction {
   status: TransactionStatus;
 
   @CreateDateColumn()
-  created_at: Date;
+  createdAt: Date;
 }

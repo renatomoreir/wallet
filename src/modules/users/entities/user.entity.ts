@@ -9,7 +9,7 @@ export enum UserRole {
 @Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  userId: string;
 
   @Column({ unique: true })
   email: string;
@@ -28,7 +28,7 @@ export class User {
   role: UserRole;
 
   @CreateDateColumn()
-  created_at: Date;
+  createdAt: Date;
 
   @OneToOne(() => Wallet, wallet => wallet.user)
   wallet: Wallet;

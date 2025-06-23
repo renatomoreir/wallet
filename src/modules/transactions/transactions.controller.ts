@@ -17,9 +17,9 @@ export class TransactionsController {
 
   @UseGuards(JwtAuthGuard)
   @Roles(UserRole.admin)
-  @Post(':id/reverse')
-  reverse(@Param('id') id: string) {
-    return this.transactionsService.reverseTransaction(id);
+  @Post(':transactionId/reverse')
+  reverse(@Param('transactionId') transactionId: string) {
+    return this.transactionsService.reverseTransaction(transactionId);
   }
 
   @Get()

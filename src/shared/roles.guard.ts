@@ -35,8 +35,6 @@ export class RolesGuard implements CanActivate {
         role: decoded.role,
       };
 
-      console.log('User no guard =>', request.user);
-
       if (!request.user.role) {
         throw new ForbiddenException('Usuário sem função definida');
       }

@@ -10,14 +10,14 @@ import { Roles } from 'src/shared/roles.decorator';
 export class WalletsController {
   constructor(private readonly walletsService: WalletsService) { }
 
-  @Get(':id/balance')
-  getBalance(@Param('id') walletId: string) {
+  @Get(':walletId/balance')
+  getBalance(@Param('walletId') walletId: string) {
     return this.walletsService.getBalance(walletId);
   }
 
-  @Get(':id')
-  findById(@Param('id') id: string) {
-    return this.walletsService.findById(id);
+  @Get(':walletId')
+  findById(@Param('walletId') walletId: string) {
+    return this.walletsService.findById(walletId);
   }
   
   @Get()
@@ -30,14 +30,14 @@ export class WalletsController {
     return this.walletsService.create(dto);
   }
 
-  @Put(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateWalletDto) {
-    return this.walletsService.update(id, dto);
+  @Put(':walletId')
+  update(@Param('walletId') walletId: string, @Body() dto: UpdateWalletDto) {
+    return this.walletsService.update(walletId, dto);
   }
 
-  @Delete(':id')
+  @Delete(':walletId')
   @Roles(UserRole.admin)
-  delete(@Param('id') id: string) {
-    return this.walletsService.delete(id);
+  delete(@Param('walletId') walletId: string) {
+    return this.walletsService.delete(walletId);
   }
 }

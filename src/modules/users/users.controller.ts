@@ -23,9 +23,9 @@ export class UsersController {
     return this.usersService.findAll(filter);
   }
 
-  @Get(':id')
-  async getById(@Param('id') id: string) {
-    return this.usersService.findById(id);
+  @Get(':userId')
+  async getById(@Param('userId') userId: string) {
+    return this.usersService.findById(userId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -34,7 +34,7 @@ export class UsersController {
   @ApiBearerAuth('Authorization')
   promoteUser(
     @Param('userId') userId: string,
-    @Body() updateRoleDto: { role: UserRole },
+    @Body() updateRoleDto: UpdateRoleDto,
   ) {
     return this.usersService.updateRole(userId, updateRoleDto.role);
   }

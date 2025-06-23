@@ -18,7 +18,7 @@ export class UsersService {
     if (existingUser) {
       throw new BadRequestException('Email já está em uso');
     }
-    const user = this.userRepository.create({ name, email, password: hashedPassword, role, created_at: new Date() });
+    const user = this.userRepository.create({ name, email, password: hashedPassword, role, createdAt: new Date() });
     await this.userRepository.save(user);
 
     const wallet = this.walletRepository.create({ user, balance: 0 });
@@ -31,8 +31,8 @@ export class UsersService {
     return this.userRepository.findOne({ where: { email }, relations: ['wallet'] });
   }
 
-  async findById(id: string) {
-    const user = await this.userRepository.findOne({ where: { id }, relations: ['wallet'] });
+  async findById(userId: string) {
+    const user = await this.userRepository.findOne({ where: { userId }, relations: ['wallet'] });
     if (!user) throw new NotFoundException('User not found');
     return user;
   }
@@ -51,8 +51,8 @@ export class UsersService {
     return query.getMany();
   }
 
-   async updateRole(id: string, role: UserRole) {
-    const user = await this.userRepository.findOne({ where: { id } });
+   async updateRole(userId: string, role: UserRole) {
+    const user = await this.userRepository.findOne({ where: { userId } });
     if (!user) {
       throw new NotFoundException('Usuário não encontrado');
     }

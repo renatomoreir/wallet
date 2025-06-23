@@ -20,8 +20,8 @@ export class TransactionsService {
     }
 
     return await this.dataSource.transaction(async manager => {
-      const senderWallet = await manager.findOne(Wallet, { where: { id: senderWalletId } });
-      const receiverWallet = await manager.findOne(Wallet, { where: { id: receiverWalletId } });
+      const senderWallet = await manager.findOne(Wallet, { where: { walletId: senderWalletId } });
+      const receiverWallet = await manager.findOne(Wallet, { where: { walletId: receiverWalletId } });
 
       if (!senderWallet || !receiverWallet) {
         throw new NotFoundException('Carteira não encontrada');
@@ -52,7 +52,7 @@ export class TransactionsService {
   async reverseTransaction(transactionId: string) {
     return await this.dataSource.transaction(async manager => {
       const transaction = await manager.findOne(Transaction, {
-        where: { id: transactionId },
+        where: { transactionId: transactionId },
         relations: ['sender_wallet', 'receiver_wallet'],
       });
 
@@ -64,14 +64,13 @@ export class TransactionsService {
         throw new BadRequestException('Transação já foi revertida');
       }
 
-      const senderWallet = await manager.findOne(Wallet, { where: { id: transaction.sender_wallet.id } });
-      const receiverWallet = await manager.findOne(Wallet, { where: { id: transaction.receiver_wallet.id } });
+      const senderWallet = await manager.findOne(Wallet, { where: { walletId: transaction.senderWalletId.walletId } });
+      const receiverWallet = await manager.findOne(Wallet, { where: { walletId: transaction.receiverWalletId.walletId } });
 
       if (!senderWallet || !receiverWallet) {
         throw new NotFoundException('Carteira não encontrada');
       }
 
-      // Realiza a reversão
       senderWallet.balance = Number(senderWallet.balance) + Number(transaction.amount);
       receiverWallet.balance = Number(receiverWallet.balance) - Number(transaction.amount);
 
