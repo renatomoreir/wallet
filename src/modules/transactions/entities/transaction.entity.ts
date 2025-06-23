@@ -2,9 +2,9 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, Jo
 import { Wallet } from '../../wallets/entities/wallet.entity';
 
 export enum TransactionStatus {
-  PENDING = 'PENDING',
-  COMPLETED = 'COMPLETED',
-  REVERSED = 'REVERSED'
+  pending = 'pending',
+  completed = 'completed',
+  reversed = 'reversed'
 }
 
 @Entity()
@@ -13,15 +13,15 @@ export class Transaction {
 
   @ManyToOne(() => Wallet)
   @JoinColumn({ name: 'senderWalletId' })
-  senderWalletId: Wallet;
+  senderWallet: Wallet;
 
   @ManyToOne(() => Wallet)
   @JoinColumn({ name: 'receiverWalletId' })
-  receiverWalletId: Wallet;
+  receiverWallet: Wallet;
 
   @Column({ type: 'decimal' }) amount: number;
 
-  @Column({ type: 'enum', enum: TransactionStatus, default: TransactionStatus.PENDING })
+  @Column({ type: 'enum', enum: TransactionStatus, default: TransactionStatus.pending })
   status: TransactionStatus;
 
   @CreateDateColumn()

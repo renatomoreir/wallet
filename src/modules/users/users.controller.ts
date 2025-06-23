@@ -30,9 +30,9 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin)
-  @Patch(':userId/role')
   @ApiBearerAuth('Authorization')
-  promoteUser(
+  @Patch(':userId/role')
+  async promoteUser(
     @Param('userId') userId: string,
     @Body() updateRoleDto: UpdateRoleDto,
   ) {

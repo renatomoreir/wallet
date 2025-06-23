@@ -51,7 +51,7 @@ export class UsersService {
     return query.getMany();
   }
 
-   async updateRole(userId: string, role: UserRole) {
+  async updateRole(userId: string, role: UserRole) {
     const user = await this.userRepository.findOne({ where: { userId } });
     if (!user) {
       throw new NotFoundException('Usuário não encontrado');

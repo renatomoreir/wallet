@@ -10,8 +10,6 @@ export class TransactionsService {
     private readonly dataSource: DataSource,
     @InjectRepository(Transaction)
     private readonly transactionRepository: Repository<Transaction>,
-    @InjectRepository(Wallet)
-    private readonly walletRepository: Repository<Wallet>,
   ) { }
 
   async createTransaction(senderWalletId: string, receiverWalletId: string, amount: number) {
@@ -20,8 +18,13 @@ export class TransactionsService {
     }
 
     return await this.dataSource.transaction(async manager => {
-      const senderWallet = await manager.findOne(Wallet, { where: { walletId: senderWalletId } });
-      const receiverWallet = await manager.findOne(Wallet, { where: { walletId: receiverWalletId } });
+      const senderWallet = await manager.findOne(Wallet, {
+        where: { walletId: senderWalletId },
+      });
+
+      const receiverWallet = await manager.findOne(Wallet, {
+        where: { walletId: receiverWalletId },
+      });
 
       if (!senderWallet || !receiverWallet) {
         throw new NotFoundException('Carteira não encontrada');
@@ -37,10 +40,10 @@ export class TransactionsService {
       await manager.save([senderWallet, receiverWallet]);
 
       const transaction = manager.create(Transaction, {
-        sender_wallet: senderWallet,
-        receiver_wallet: receiverWallet,
+        senderWallet: senderWallet,
+        receiverWallet: receiverWallet,
         amount,
-        status: TransactionStatus.COMPLETED,
+        status: TransactionStatus.completed,
       });
 
       await manager.save(transaction);
@@ -51,21 +54,29 @@ export class TransactionsService {
 
   async reverseTransaction(transactionId: string) {
     return await this.dataSource.transaction(async manager => {
-      const transaction = await manager.findOne(Transaction, {
-        where: { transactionId: transactionId },
-        relations: ['sender_wallet', 'receiver_wallet'],
-      });
+      const transaction = await manager.findOne(Transaction, { where: { transactionId: transactionId }, relations: ['senderWallet', 'receiverWallet'], });
 
       if (!transaction) {
         throw new NotFoundException('Transação não encontrada');
       }
 
-      if (transaction.status === TransactionStatus.REVERSED) {
+      if (transaction.status === TransactionStatus.reversed) {
         throw new BadRequestException('Transação já foi revertida');
       }
 
-      const senderWallet = await manager.findOne(Wallet, { where: { walletId: transaction.senderWalletId.walletId } });
-      const receiverWallet = await manager.findOne(Wallet, { where: { walletId: transaction.receiverWalletId.walletId } });
+      if (transaction.status !== TransactionStatus.completed) {
+        throw new BadRequestException('Transação não pode ser revertida');
+      }
+
+      if (transaction.senderWallet == null || transaction.receiverWallet == null) {
+        throw new BadRequestException('Transação inválida: carteiras não associadas');
+      }
+
+      if (transaction.amount <= 0) {
+        throw new BadRequestException('Valor da transação inválido para reversão');
+      }
+      const senderWallet = await manager.findOne(Wallet, { where: { walletId: transaction.senderWallet.walletId } });
+      const receiverWallet = await manager.findOne(Wallet, { where: { walletId: transaction.receiverWallet.walletId } });
 
       if (!senderWallet || !receiverWallet) {
         throw new NotFoundException('Carteira não encontrada');
@@ -76,28 +87,32 @@ export class TransactionsService {
 
       await manager.save([senderWallet, receiverWallet]);
 
-      transaction.status = TransactionStatus.REVERSED;
+      transaction.status = TransactionStatus.reversed;
       await manager.save(transaction);
 
       return transaction;
     });
   }
 
-  async findAll(filters: { senderWalletId?: string; receiverWalletId?: string; status?: string }) {
+  async findAll(filter: { senderWalletId?: string; receiverWalletId?: string; status?: TransactionStatus, amount?: number }) {
     const query = this.transactionRepository.createQueryBuilder('transaction')
-      .leftJoinAndSelect('transaction.sender_wallet', 'sender_wallet')
-      .leftJoinAndSelect('transaction.receiver_wallet', 'receiver_wallet');
+      .leftJoinAndSelect('transaction.senderWallet', 'senderWallet')
+      .leftJoinAndSelect('transaction.receiverWallet', 'receiverWallet');
 
-    if (filters.senderWalletId) {
-      query.andWhere('transaction.senderWalletId = :senderWalletId', { senderWalletId: filters.senderWalletId });
+    if (filter.senderWalletId) {
+      query.andWhere('transaction.senderWalletId = :senderWalletId', { senderWalletId: filter.senderWalletId });
     }
 
-    if (filters.receiverWalletId) {
-      query.andWhere('transaction.receiverWalletId = :receiverWalletId', { receiverWalletId: filters.receiverWalletId });
+    if (filter.receiverWalletId) {
+      query.andWhere('transaction.receiverWalletId = :receiverWalletId', { receiverWalletId: filter.receiverWalletId });
     }
 
-    if (filters.status) {
-      query.andWhere('transaction.status = :status', { status: filters.status });
+    if (filter.status) {
+      query.andWhere('transaction.status = :status', { status: filter.status });
+    }
+
+    if (filter.amount) {
+      query.andWhere('transaction.amount = :amount', { amount: filter.amount });
     }
 
     return query.getMany();

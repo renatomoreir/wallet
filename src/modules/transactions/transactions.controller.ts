@@ -1,33 +1,32 @@
-import { Controller, Post, Body, Param, Get, Query } from '@nestjs/common';
+import { Controller, Post, Body, Param, Get, Query, UseGuards } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
-import { Roles } from '../../shared/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
-import { UseGuards } from '@nestjs/common';
+import { Roles } from '../../shared/roles.decorator';
 import { JwtAuthGuard } from '../../shared/jwt-auth.guard';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { RolesGuard } from 'src/shared/roles.guard';
+import { FilterTransactionDto } from './dto/filter-transaction.dto';
 
 @Controller('transactions')
 export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) { }
 
   @Post('transfer')
-  transfer(@Body() body: CreateTransactionDto) {
+  async transfer(@Body() body: CreateTransactionDto) {
     return this.transactionsService.createTransaction(body.senderWalletId, body.receiverWalletId, body.amount);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin)
+  @ApiBearerAuth('Authorization')
   @Post(':transactionId/reverse')
-  reverse(@Param('transactionId') transactionId: string) {
+  async reverse(@Param('transactionId') transactionId: string) {
     return this.transactionsService.reverseTransaction(transactionId);
   }
 
   @Get()
-  getAll(
-    @Query('senderWalletId') senderWalletId?: string,
-    @Query('receiverWalletId') receiverWalletId?: string,
-    @Query('status') status?: string
-  ) {
-    return this.transactionsService.findAll({ senderWalletId, receiverWalletId, status });
+  async getAll(@Query() filter: FilterTransactionDto) {
+    return this.transactionsService.findAll(filter);
   }
 }
